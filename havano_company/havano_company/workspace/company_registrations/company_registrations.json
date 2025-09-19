@@ -1,0 +1,51 @@
+{
+ "charts": [
+  {
+   "chart_name": "Company Registration",
+   "label": "Company Registration"
+  },
+  {
+   "chart_name": "Company Registrations by Industry",
+   "label": "Company Registrations by Industry"
+  }
+ ],
+ "content": "[{\"id\":\"CzU2Jg6vO0\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Company Registrations</span>\",\"col\":12}},{\"id\":\"Yn32kUUjWV\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Pending Company Registration\",\"col\":4}},{\"id\":\"-EOIV5PtWz\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Completed Company Registration\",\"col\":4}},{\"id\":\"e1Qjs6LJCS\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Cancelled Company Registration\",\"col\":4}},{\"id\":\"128rITfQya\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Company Registration\",\"col\":6}},{\"id\":\"B1phtF8UBR\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Company Registrations by Industry\",\"col\":6}}]",
+ "creation": "2025-09-18 22:11:52.495146",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "color-monthly-rank",
+ "idx": 0,
+ "indicator_color": "green",
+ "is_hidden": 0,
+ "label": "Company Registrations",
+ "links": [],
+ "modified": "2025-09-18 22:19:33.479938",
+ "modified_by": "Administrator",
+ "module": "Havano Company",
+ "name": "Company Registrations",
+ "number_cards": [
+  {
+   "label": "Pending Company Registration",
+   "number_card_name": "Pending Company Registration"
+  },
+  {
+   "label": "Completed Company Registration",
+   "number_card_name": "Completed Company Registration"
+  },
+  {
+   "label": "Cancelled Company Registration",
+   "number_card_name": "Cancelled Company Registration"
+  }
+ ],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [],
+ "sequence_id": 1.0,
+ "shortcuts": [],
+ "title": "Company Registrations"
+}

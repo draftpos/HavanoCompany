@@ -83,7 +83,7 @@ app_license = "mit"
 # ------------
 
 # before_install = "havano_company.install.before_install"
-# after_install = "havano_company.install.after_install"
+after_install = "havano_company.setup.after_install"
 
 # Uninstallation
 # ------------
@@ -117,13 +117,13 @@ app_license = "mit"
 # -----------
 # Permissions evaluated in scripted ways
 
-# permission_query_conditions = {
-# 	"Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
-# }
-#
-# has_permission = {
-# 	"Event": "frappe.desk.doctype.event.event.has_permission",
-# }
+permission_query_conditions = {
+	"*": "havano_company.permissions.get_permission_query_conditions",
+}
+
+has_permission = {
+	"*": "havano_company.permissions.has_permission",
+}
 
 # DocType Class
 # ---------------
@@ -137,13 +137,14 @@ app_license = "mit"
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-# 	}
-# }
+doc_events = {
+	"*": {
+		"before_insert": "havano_company.utils.set_company_field"
+	},
+	"Company Registration": {
+		"on_submit": "havano_company.havano_company.web_form.company_registration.company_registration.on_submit"
+	}
+}
 
 # Scheduled Tasks
 # ---------------
