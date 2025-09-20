@@ -47,6 +47,43 @@ function setup_form_submission() {
 	});
 }
 
+function submit_form() {
+	var submit_btn = $('.btn-primary');
+	var original_text = submit_btn.html();
+	
+	// Show loading state
+	submit_btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> ' + __('Creating Account...'));
+	
+	// Get form data
+	var form_data = get_form_data();
+	
+	// Set doctype status to submitted
+	form_data.docstatus = 1;
+	
+	// Submit using Frappe's webform accept API
+	frappe.call({
+		method: 'frappe.website.doctype.web_form.web_form.accept',
+		args: {
+			web_form: 'company-registration',
+			data: JSON.stringify(form_data)
+		},
+		callback: function(r) {
+			if (r.message) {
+				// Success - redirect to success page
+				window.location.href = '/company-registration?success=1';
+			} else {
+				// Error
+				submit_btn.prop('disabled', false).html(original_text);
+				frappe.msgprint(__('Registration failed. Please try again.'));
+			}
+		},
+		error: function(r) {
+			submit_btn.prop('disabled', false).html(original_text);
+			frappe.msgprint(__('Registration failed. Please try again.'));
+		}
+	});
+}
+
 function validate_form() {
 	var is_valid = true;
 	var errors = [];
@@ -128,39 +165,6 @@ function is_valid_username(username) {
 	return username_regex.test(username);
 }
 
-function submit_form() {
-	var submit_btn = $('.btn-primary');
-	var original_text = submit_btn.html();
-	
-	// Show loading state
-	submit_btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> ' + __('Creating Account...'));
-	
-	// Get form data
-	var form_data = get_form_data();
-	
-	// Submit using Frappe's standard method
-	frappe.call({
-		method: 'frappe.website.doctype.web_form.web_form.submit',
-		args: {
-			doc: form_data,
-			web_form: 'company-registration'
-		},
-		callback: function(r) {
-			if (r.message) {
-				// Success - redirect to success page
-				window.location.href = '/company-registration?success=1';
-			} else {
-				// Error
-				submit_btn.prop('disabled', false).html(original_text);
-				frappe.msgprint(__('Registration failed. Please try again.'));
-			}
-		},
-		error: function(r) {
-			submit_btn.prop('disabled', false).html(original_text);
-			frappe.msgprint(__('Registration failed. Please try again.'));
-		}
-	});
-}
 
 function setup_field_validations() {
 	// Real-time validation for password
