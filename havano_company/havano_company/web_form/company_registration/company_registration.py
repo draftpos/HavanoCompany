@@ -48,10 +48,10 @@ def on_submit(doc, method=None):
 			frappe.throw(_("Company with this name already exists. Please choose a different company name."))
 		
 		# Check if company abbreviation already exists
-		company_abbr = doc.organization_name[:3].upper() if len(doc.organization_name) >= 3 else doc.organization_name.upper()
-		existing_company_with_abbr = frappe.db.get_value("Company", {"abbr": company_abbr}, "name")
-		if existing_company_with_abbr:
-			frappe.throw(_("Company abbreviation '{0}' is already used by '{1}'. Please choose a different company name.").format(company_abbr, existing_company_with_abbr))
+		# company_abbr = doc.organization_name[:3].upper() if len(doc.organization_name) >= 3 else doc.organization_name.upper()
+		# existing_company_with_abbr = frappe.db.get_value("Company", {"abbr": company_abbr}, "name")
+		# if existing_company_with_abbr:
+		# 	frappe.throw(_("Company abbreviation '{0}' is already used by '{1}'. Please choose a different company name.").format(company_abbr, existing_company_with_abbr))
 		
 		# Create Company
 		company_doc = frappe.get_doc({
