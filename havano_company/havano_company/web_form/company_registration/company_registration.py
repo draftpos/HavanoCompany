@@ -35,23 +35,23 @@ def on_submit(doc, method=None):
 		if len(doc.password) < 6:
 			frappe.throw(_("Password must be at least 6 characters long"))
 		
-		# Check if username already exists
-		if frappe.db.exists("User", doc.username):
+		# Clean and validate username
+		doc.username = doc.username.strip().lower()
+		
+		# Check if username already exists (case insensitive)
+		existing_user = frappe.db.get_value("User", {"username": doc.username}, "name")
+		if existing_user:
 			frappe.throw(_("Username already exists. Please choose a different username."))
 		
 		# Check if email already exists
-		if frappe.db.exists("User", doc.email):
+		existing_email = frappe.db.get_value("User", {"email": doc.email}, "name")
+		if existing_email:
 			frappe.throw(_("Email already exists. Please use a different email."))
 		
 		# Check if company name already exists
 		if frappe.db.exists("Company", doc.organization_name):
 			frappe.throw(_("Company with this name already exists. Please choose a different company name."))
 		
-		# Check if company abbreviation already exists
-		# company_abbr = doc.organization_name[:3].upper() if len(doc.organization_name) >= 3 else doc.organization_name.upper()
-		# existing_company_with_abbr = frappe.db.get_value("Company", {"abbr": company_abbr}, "name")
-		# if existing_company_with_abbr:
-		# 	frappe.throw(_("Company abbreviation '{0}' is already used by '{1}'. Please choose a different company name.").format(company_abbr, existing_company_with_abbr))
 		
 		# Create Company
 		company_doc = frappe.get_doc({
@@ -107,18 +107,30 @@ def on_submit(doc, method=None):
 			from frappe.utils.password import update_password
 			update_password(doc.username, doc.password)
 			
+			# Check if Company User Role exists, if not create it
+			if not frappe.db.exists("Role", "Company User Role"):
+				role_doc = frappe.get_doc({
+					"doctype": "Role",
+					"role_name": "Company User Role",
+					"desk_access": 1
+				})
+				role_doc.insert(ignore_permissions=True)
+				frappe.db.commit()
+			
+			# Assign Company User Role to the user
+			frappe.get_doc({
+				"doctype": "Has Role",
+				"parent": doc.username,
+				"parenttype": "User",
+				"parentfield": "roles",
+				"role": "Company User Role"
+			}).insert(ignore_permissions=True)
+			
+			frappe.db.commit()
+			
 		except Exception as e:
 			frappe.log_error(f"Error creating user: {str(e)}")
 			frappe.throw(_("Failed to create user. Please try again or contact support."))
-		
-		# Assign Company User Role to the user
-		frappe.get_doc({
-			"doctype": "Has Role",
-			"parent": doc.username,
-			"parenttype": "User",
-			"parentfield": "roles",
-			"role": "Company User Role"
-		}).insert(ignore_permissions=True)
 		
 		# Update Company Registration document with company reference
 		doc.company = company_doc.name
