@@ -117,13 +117,13 @@ after_install = "havano_company.setup.after_install"
 # -----------
 # Permissions evaluated in scripted ways
 
-permission_query_conditions = {
-	"*": "havano_company.permissions.get_permission_query_conditions",
-}
+# permission_query_conditions = {
+# 	"*": "havano_company.permissions.get_permission_query_conditions",
+# }
 
-has_permission = {
-	"*": "havano_company.permissions.has_permission",
-}
+# has_permission = {
+# 	"*": "havano_company.permissions.has_permission",
+# }
 
 # DocType Class
 # ---------------
@@ -142,7 +142,7 @@ doc_events = {
 		"before_insert": "havano_company.utils.set_company_field"
 	},
 	"Company Registration": {
-		"validate": "havano_company.havano_company.web_form.company_registration.company_registration.on_submit"
+		"on_submit": "havano_company.havano_company.web_form.company_registration.company_registration.on_submit"
 	}
 }
 

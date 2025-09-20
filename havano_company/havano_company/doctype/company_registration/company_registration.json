@@ -95,6 +95,7 @@
    "reqd": 1
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "company",
    "fieldtype": "Link",
    "label": "Company",
@@ -123,7 +124,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-09-18 22:02:48.730122",
+ "modified": "2025-09-20 07:20:39.175382",
  "modified_by": "Administrator",
  "module": "Havano Company",
  "name": "Company Registration",
