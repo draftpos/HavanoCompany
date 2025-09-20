@@ -30,53 +30,27 @@ function init_form_validation() {
 function setup_form_submission() {
 	// Override the default form submission
 	$('.web-form').on('submit', function(e) {
-		e.preventDefault();
-		
-		if (validate_form()) {
-			submit_form();
+		if (!validate_form()) {
+			e.preventDefault();
+			return false;
 		}
+		
+		// Show loading state
+		var submit_btn = $('.btn-primary');
+		var original_text = submit_btn.html();
+		submit_btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> ' + __('Creating Account...'));
+		
+		// Re-enable button after 10 seconds as fallback
+		setTimeout(function() {
+			submit_btn.prop('disabled', false).html(original_text);
+		}, 10000);
 	});
 	
 	// Handle button click
 	$('.btn-primary').on('click', function(e) {
-		e.preventDefault();
-		
-		if (validate_form()) {
-			submit_form();
-		}
-	});
-}
-
-function submit_form() {
-	var submit_btn = $('.btn-primary');
-	var original_text = submit_btn.html();
-	
-	// Show loading state
-	submit_btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> ' + __('Creating Account...'));
-	
-	// Get form data
-	var form_data = get_form_data();
-	
-	// Set doctype status to submitted
-	form_data.docstatus = 1;
-	
-	// Submit using Frappe's webform accept API
-	frappe.call({
-		method: 'frappe.website.doctype.web_form.web_form.accept',
-		args: {
-			web_form: 'company-registration',
-			data: JSON.stringify(form_data)
-		},
-		callback: function(r) {
-			if (!r.message) {
-				// Error
-				submit_btn.prop('disabled', false).html(original_text);
-				frappe.msgprint(__('Registration failed. Please try again.'));
-			}
-		},
-		error: function(r) {
-			submit_btn.prop('disabled', false).html(original_text);
-			frappe.msgprint(__('Registration failed. Please try again.'));
+		if (!validate_form()) {
+			e.preventDefault();
+			return false;
 		}
 	});
 }
@@ -108,7 +82,7 @@ function validate_form() {
 	}
 	
 	// Validate password confirmation
-	if (form_data.password !== form_data.confirm_password) {
+	if (form_data.password && form_data.confirm_password && form_data.password !== form_data.confirm_password) {
 		show_field_error('confirm_password', __('Passwords do not match'));
 		is_valid = false;
 	}
@@ -172,6 +146,14 @@ function setup_field_validations() {
 		} else {
 			clear_field_error('password');
 		}
+		
+		// Also re-validate confirm password when password changes
+		var confirm_password = $('[data-fieldname="confirm_password"]').val();
+		if (confirm_password && password && password !== confirm_password) {
+			show_field_error('confirm_password', __('Passwords do not match'));
+		} else {
+			clear_field_error('confirm_password');
+		}
 	});
 	
 	// Real-time validation for password confirmation
@@ -179,7 +161,7 @@ function setup_field_validations() {
 		var password = $('[data-fieldname="password"]').val();
 		var confirm_password = $(this).val();
 		
-		if (confirm_password && password !== confirm_password) {
+		if (confirm_password && password && password !== confirm_password) {
 			show_field_error('confirm_password', __('Passwords do not match'));
 		} else {
 			clear_field_error('confirm_password');

@@ -70,32 +70,38 @@ def on_submit(doc, method=None):
 		# Commit the company creation
 		frappe.db.commit()
 		
-		# Create User
-		user_doc = frappe.get_doc({
-			"doctype": "User",
-			"email": doc.email,
-			"first_name": doc.full_name.split()[0] if doc.full_name else "",
-			"last_name": " ".join(doc.full_name.split()[1:]) if len(doc.full_name.split()) > 1 else "",
-			"username": doc.username,
-			"send_welcome_email": 0,
-			"enabled": 1,
-			"user_type": "Website User",
-			"phone": doc.phone or "",
-			"mobile_no": doc.phone or "",
-			"company": company_doc.name,
-			"language": "en",
-			"time_zone": "Africa/Harare"
-		})
-		
-		# Insert user first
-		user_doc.insert(ignore_permissions=True)
-		
-		# Set password using Frappe's password hashing
-		from frappe.utils.password import update_password
-		update_password(user_doc.name, doc.password)
-		
-		# Commit the user creation
-		frappe.db.commit()
+		# Create User with minimal fields first to avoid validation issues
+		try:
+			user_doc = frappe.get_doc({
+				"doctype": "User",
+				"email": doc.email,
+				"first_name": doc.full_name.split()[0] if doc.full_name else "",
+				"last_name": " ".join(doc.full_name.split()[1:]) if len(doc.full_name.split()) > 1 else "",
+				"username": doc.username,
+				"enabled": 1,
+				"user_type": "Website User"
+			})
+			
+			# Insert user with minimal data first
+			user_doc.insert(ignore_permissions=True)
+			frappe.db.commit()
+			
+			# Set password using Frappe's password hashing
+			from frappe.utils.password import update_password
+			update_password(user_doc.name, doc.password)
+			
+			# Update user with additional fields after creation
+			# user_doc.phone = doc.phone or ""
+			# user_doc.mobile_no = doc.phone or ""
+			user_doc.company = company_doc.name
+			user_doc.language = "en"
+			user_doc.time_zone = "Africa/Harare"
+			user_doc.save(ignore_permissions=True)
+			frappe.db.commit()
+			
+		except Exception as e:
+			frappe.log_error(f"Error creating user: {str(e)}")
+			frappe.throw(_("Failed to create user. Please try again or contact support."))
 		
 		# Assign Company User Role to the user
 		frappe.get_doc({
