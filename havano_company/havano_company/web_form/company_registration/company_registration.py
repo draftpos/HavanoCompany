@@ -84,7 +84,7 @@ def on_submit(doc, method=None):
 			"mobile_no": doc.phone or "",
 			"company": company_doc.name,
 			"language": "en",
-			"time_zone": "Asia/Kolkata"
+			"time_zone": "Africa/Harare"
 		})
 		
 		# Insert user first

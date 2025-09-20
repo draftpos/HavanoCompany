@@ -68,10 +68,7 @@ function submit_form() {
 			data: JSON.stringify(form_data)
 		},
 		callback: function(r) {
-			if (r.message) {
-				// Success - redirect to success page
-				window.location.href = '/company-registration?success=1';
-			} else {
+			if (!r.message) {
 				// Error
 				submit_btn.prop('disabled', false).html(original_text);
 				frappe.msgprint(__('Registration failed. Please try again.'));
