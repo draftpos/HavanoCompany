@@ -70,34 +70,43 @@ def on_submit(doc, method=None):
 		# Commit the company creation
 		frappe.db.commit()
 		
-		# Create User with minimal fields first to avoid validation issues
+		# Create User using direct database insertion to avoid hook issues
 		try:
-			user_doc = frappe.get_doc({
-				"doctype": "User",
+			# Create user data
+			user_data = {
+				"name": doc.username,
 				"email": doc.email,
 				"first_name": doc.full_name.split()[0] if doc.full_name else "",
 				"last_name": " ".join(doc.full_name.split()[1:]) if len(doc.full_name.split()) > 1 else "",
 				"username": doc.username,
 				"enabled": 1,
-				"user_type": "Website User"
-			})
+				"user_type": "Website User",
+				"phone": doc.phone or "",
+				"mobile_no": doc.phone or "",
+				"company": company_doc.name,
+				"language": "en",
+				"time_zone": "Africa/Harare",
+				"creation": frappe.utils.now(),
+				"modified": frappe.utils.now(),
+				"owner": "Administrator",
+				"modified_by": "Administrator"
+			}
 			
-			# Insert user with minimal data first
-			user_doc.insert(ignore_permissions=True)
+			# Insert user directly into database
+			frappe.db.sql("""
+				INSERT INTO `tabUser` 
+				(name, email, first_name, last_name, username, enabled, user_type, 
+				 phone, mobile_no, company, language, time_zone, creation, modified, owner, modified_by)
+				VALUES (%(name)s, %(email)s, %(first_name)s, %(last_name)s, %(username)s, 
+				        %(enabled)s, %(user_type)s, %(phone)s, %(mobile_no)s, %(company)s, 
+				        %(language)s, %(time_zone)s, %(creation)s, %(modified)s, %(owner)s, %(modified_by)s)
+			""", user_data)
+			
 			frappe.db.commit()
 			
 			# Set password using Frappe's password hashing
 			from frappe.utils.password import update_password
-			update_password(user_doc.name, doc.password)
-			
-			# Update user with additional fields after creation
-			# user_doc.phone = doc.phone or ""
-			# user_doc.mobile_no = doc.phone or ""
-			user_doc.company = company_doc.name
-			user_doc.language = "en"
-			user_doc.time_zone = "Africa/Harare"
-			user_doc.save(ignore_permissions=True)
-			frappe.db.commit()
+			update_password(doc.username, doc.password)
 			
 		except Exception as e:
 			frappe.log_error(f"Error creating user: {str(e)}")
@@ -106,29 +115,25 @@ def on_submit(doc, method=None):
 		# Assign Company User Role to the user
 		frappe.get_doc({
 			"doctype": "Has Role",
-			"parent": user_doc.name,
+			"parent": doc.username,
 			"parenttype": "User",
 			"parentfield": "roles",
 			"role": "Company User Role"
 		}).insert(ignore_permissions=True)
 		
-		# Set user's company
-		user_doc.company = company_doc.name
-		user_doc.save(ignore_permissions=True)
-		
 		# Update Company Registration document with company reference
 		doc.company = company_doc.name
-		doc.user_created = user_doc.name
+		doc.user_created = doc.username
 		doc.save(ignore_permissions=True)
 		
 		# Final commit
 		frappe.db.commit()
 		
 		# Send welcome email with login credentials
-		send_welcome_email(user_doc, company_doc, doc.password)
+		send_welcome_email(doc.username, company_doc, doc.password)
 		
 		# Log successful registration
-		frappe.logger().info(f"Company registration successful: Company={company_doc.name}, User={user_doc.name}, Email={doc.email}")
+		frappe.logger().info(f"Company registration successful: Company={company_doc.name}, User={doc.username}, Email={doc.email}")
 		
 		# Set success message
 		frappe.msgprint(_("Registration successful! Welcome email sent to {0}").format(doc.email), alert=True)
@@ -137,7 +142,7 @@ def on_submit(doc, method=None):
 		frappe.log_error(frappe.get_traceback(), "Company Registration Error")
 		frappe.throw(_("Registration failed. Please try again or contact support."))
 
-def send_welcome_email(user_doc, company_doc, password):
+def send_welcome_email(username, company_doc, password):
 	"""Send welcome email with login credentials"""
 	try:
 		subject = f"Welcome to Havano - Your {company_doc.company_name} Account is Ready!"
@@ -153,13 +158,13 @@ def send_welcome_email(user_doc, company_doc, password):
 					Welcome to Havano!
 				</h2>
 				
-				<p>Dear {user_doc.first_name},</p>
+				<p>Dear User,</p>
 				
 				<p>Congratulations! Your company <strong>{company_doc.company_name}</strong> has been successfully registered with Havano.</p>
 				
 				<div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0;">
 					<h3 style="color: #2c3e50; margin-top: 0;">Your Login Credentials:</h3>
-					<p><strong>Username:</strong> {user_doc.username}</p>
+					<p><strong>Username:</strong> {username}</p>
 					<p><strong>Password:</strong> {password}</p>
 					<p><strong>Company:</strong> {company_doc.company_name}</p>
 					<p><strong>Login URL:</strong> <a href="{site_url}/login" style="color: #3498db;">{site_url}/login</a></p>
