@@ -96,9 +96,9 @@ def on_submit(doc, method=None):
 			frappe.db.sql("""
 				INSERT INTO `tabUser` 
 				(name, email, first_name, last_name, username, enabled, user_type, 
-				 phone, mobile_no, company, language, time_zone, creation, modified, owner, modified_by)
+				 phone, mobile_no, language, time_zone, creation, modified, owner, modified_by)
 				VALUES (%(name)s, %(email)s, %(first_name)s, %(last_name)s, %(username)s, 
-				        %(enabled)s, %(user_type)s, %(phone)s, %(mobile_no)s, %(company)s, 
+				        %(enabled)s, %(user_type)s, %(phone)s, %(mobile_no)s, 
 				        %(language)s, %(time_zone)s, %(creation)s, %(modified)s, %(owner)s, %(modified_by)s)
 			""", user_data)
 			
