@@ -80,9 +80,8 @@ def on_submit(doc, method=None):
 				"last_name": " ".join(doc.full_name.split()[1:]) if len(doc.full_name.split()) > 1 else "",
 				"username": doc.username,
 				"enabled": 1,
-				"user_type": "Website User",
+				"user_type": "System User",
 				"phone": doc.phone or "",
-				"mobile_no": doc.phone or "",
 				"company": company_doc.name,
 				"language": "en",
 				"time_zone": "Africa/Harare",
@@ -96,9 +95,9 @@ def on_submit(doc, method=None):
 			frappe.db.sql("""
 				INSERT INTO `tabUser` 
 				(name, email, first_name, last_name, username, enabled, user_type, 
-				 phone, mobile_no, language, time_zone, creation, modified, owner, modified_by)
+				 phone, language, time_zone, creation, modified, owner, modified_by)
 				VALUES (%(name)s, %(email)s, %(first_name)s, %(last_name)s, %(username)s, 
-				        %(enabled)s, %(user_type)s, %(phone)s, %(mobile_no)s, 
+				        %(enabled)s, %(user_type)s, %(phone)s, 
 				        %(language)s, %(time_zone)s, %(creation)s, %(modified)s, %(owner)s, %(modified_by)s)
 			""", user_data)
 			
