@@ -138,11 +138,11 @@ after_install = "havano_company.setup.after_install"
 # Hook on document methods and events
 
 doc_events = {
-	"*": {
-		"before_insert": "havano_company.utils.set_company_field"
-	},
+	# "*": {
+	# 	"before_insert": "havano_company.utils.set_company_field"
+	# },
 	"Company Registration": {
-		"on_submit": "havano_company.havano_company.web_form.company_registration.company_registration.on_submit"
+		"validate": "havano_company.havano_company.web_form.company_registration.company_registration.on_submit"
 	}
 }
 

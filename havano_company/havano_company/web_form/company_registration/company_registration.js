@@ -7,6 +7,9 @@ frappe.ready(function() {
 	
 	// Setup field validations
 	setup_field_validations();
+	
+	// Auto-populate user information
+	auto_populate_user_info();
 });
 
 function init_form_validation() {
@@ -23,6 +26,17 @@ function init_form_validation() {
 				font-size: 12px;
 				margin-top: 5px;
 			}
+			.form-control-plaintext {
+				background-color: #f8f9fa !important;
+				border: 1px solid #dee2e6 !important;
+				color: #6c757d !important;
+				font-style: italic;
+			}
+			.form-control-plaintext:focus {
+				background-color: #f8f9fa !important;
+				border-color: #dee2e6 !important;
+				box-shadow: none !important;
+			}
 		`)
 		.appendTo('head');
 }
@@ -38,7 +52,7 @@ function setup_form_submission() {
 		// Show loading state
 		var submit_btn = $('.btn-primary');
 		var original_text = submit_btn.html();
-		submit_btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> ' + __('Creating Account...'));
+		submit_btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> ' + __('Creating Company...'));
 		
 		// Re-enable button after 10 seconds as fallback
 		setTimeout(function() {
@@ -67,7 +81,7 @@ function validate_form() {
 	var form_data = get_form_data();
 	
 	// Validate required fields
-	var required_fields = ['full_name', 'email', 'organization_name', 'username', 'password', 'confirm_password'];
+	var required_fields = ['full_name', 'email', 'organization_name'];
 	required_fields.forEach(function(fieldname) {
 		if (!form_data[fieldname] || form_data[fieldname].trim() === '') {
 			show_field_error(fieldname, __('This field is required'));
@@ -75,17 +89,6 @@ function validate_form() {
 		}
 	});
 	
-	// Validate password
-	if (form_data.password && form_data.password.length < 6) {
-		show_field_error('password', __('Password must be at least 6 characters long'));
-		is_valid = false;
-	}
-	
-	// Validate password confirmation
-	if (form_data.password && form_data.confirm_password && form_data.password !== form_data.confirm_password) {
-		show_field_error('confirm_password', __('Passwords do not match'));
-		is_valid = false;
-	}
 	
 	// Validate company name
 	if (form_data.organization_name && form_data.organization_name.length < 3) {
@@ -99,11 +102,6 @@ function validate_form() {
 		is_valid = false;
 	}
 	
-	// Validate username format
-	if (form_data.username && !is_valid_username(form_data.username)) {
-		show_field_error('username', __('Username can only contain letters, numbers, and underscores'));
-		is_valid = false;
-	}
 	
 	return is_valid;
 }
@@ -131,42 +129,9 @@ function is_valid_email(email) {
 	return email_regex.test(email);
 }
 
-function is_valid_username(username) {
-	var username_regex = /^[a-zA-Z0-9_]+$/;
-	return username_regex.test(username);
-}
 
 
 function setup_field_validations() {
-	// Real-time validation for password
-	$('[data-fieldname="password"]').on('blur', function() {
-		var password = $(this).val();
-		if (password && password.length < 6) {
-			show_field_error('password', __('Password must be at least 6 characters long'));
-		} else {
-			clear_field_error('password');
-		}
-		
-		// Also re-validate confirm password when password changes
-		var confirm_password = $('[data-fieldname="confirm_password"]').val();
-		if (confirm_password && password && password !== confirm_password) {
-			show_field_error('confirm_password', __('Passwords do not match'));
-		} else {
-			clear_field_error('confirm_password');
-		}
-	});
-	
-	// Real-time validation for password confirmation
-	$('[data-fieldname="confirm_password"]').on('blur', function() {
-		var password = $('[data-fieldname="password"]').val();
-		var confirm_password = $(this).val();
-		
-		if (confirm_password && password && password !== confirm_password) {
-			show_field_error('confirm_password', __('Passwords do not match'));
-		} else {
-			clear_field_error('confirm_password');
-		}
-	});
 	
 	// Real-time validation for company name
 	$('[data-fieldname="organization_name"]').on('blur', function() {
@@ -188,15 +153,6 @@ function setup_field_validations() {
 		}
 	});
 	
-	// Real-time validation for username
-	$('[data-fieldname="username"]').on('blur', function() {
-		var username = $(this).val();
-		if (username && !is_valid_username(username)) {
-			show_field_error('username', __('Username can only contain letters, numbers, and underscores'));
-		} else {
-			clear_field_error('username');
-		}
-	});
 }
 
 function clear_field_error(fieldname) {
@@ -205,12 +161,57 @@ function clear_field_error(fieldname) {
 	field.siblings('.field-error').remove();
 }
 
+function auto_populate_user_info() {
+	// Get current user information and populate the form
+	frappe.call({
+		method: 'frappe.client.get',
+		args: {
+			doctype: 'User',
+			name: frappe.session.user
+		},
+		callback: function(r) {
+			if (r.message) {
+				var user = r.message;
+				
+				// Populate full name
+				var full_name = '';
+				if (user.first_name && user.last_name) {
+					full_name = user.first_name + ' ' + user.last_name;
+				} else if (user.first_name) {
+					full_name = user.first_name;
+				} else if (user.full_name) {
+					full_name = user.full_name;
+				} else {
+					full_name = user.name;
+				}
+				
+				// Set the values
+				$('[data-fieldname="full_name"]').val(full_name);
+				$('[data-fieldname="email"]').val(user.email || '');
+				$('[data-fieldname="phone"]').val(user.phone || '');
+				$('[data-fieldname="status"]').val('Created');
+				
+				// Make the fields read-only since they're from the logged-in user
+				$('[data-fieldname="full_name"]').prop('readonly', true);
+				$('[data-fieldname="email"]').prop('readonly', true);
+				
+				// Add visual indication that these fields are auto-populated
+				$('[data-fieldname="full_name"]').addClass('form-control-plaintext');
+				$('[data-fieldname="email"]').addClass('form-control-plaintext');
+			}
+		},
+		error: function(err) {
+			console.error('Error fetching user information:', err);
+		}
+	});
+}
+
 // Show success message if redirected from successful submission
 $(document).ready(function() {
 	if (window.location.search.includes('success=1')) {
 		frappe.msgprint({
-			title: __('Registration Successful!'),
-			message: __('Your account has been created successfully. Please check your email for login credentials.'),
+			title: __('Company Created Successfully!'),
+			message: __('Company has been created successfully! You now have full access to ERPNext with comprehensive roles.'),
 			indicator: 'green'
 		});
 	}

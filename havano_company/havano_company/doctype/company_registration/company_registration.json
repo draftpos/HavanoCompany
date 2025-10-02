@@ -14,10 +14,7 @@
   "organization_name",
   "country",
   "city",
-  "section_break_user",
-  "username",
-  "password",
-  "confirm_password",
+  "status",
   "company",
   "user_created",
   "amended_from"
@@ -54,6 +51,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "organization_name",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -72,26 +70,12 @@
    "label": "City"
   },
   {
-   "fieldname": "section_break_user",
-   "fieldtype": "Section Break",
-   "label": "User Account Details"
-  },
-  {
-   "fieldname": "username",
-   "fieldtype": "Data",
-   "label": "Username",
-   "reqd": 1
-  },
-  {
-   "fieldname": "password",
-   "fieldtype": "Password",
-   "label": "Password",
-   "reqd": 1
-  },
-  {
-   "fieldname": "confirm_password",
-   "fieldtype": "Password",
-   "label": "Confirm Password",
+   "default": "Created",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Created\nDisabled",
    "reqd": 1
   },
   {
@@ -103,11 +87,11 @@
    "read_only": 1
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "user_created",
    "fieldtype": "Link",
    "label": "User Created",
-   "options": "User",
-   "read_only": 1
+   "options": "User"
   },
   {
    "fieldname": "amended_from",
@@ -122,9 +106,9 @@
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
- "is_submittable": 1,
+ "is_submittable": 0,
  "links": [],
- "modified": "2025-09-20 07:20:39.175382",
+ "modified": "2025-09-20 08:19:17.984372",
  "modified_by": "Administrator",
  "module": "Havano Company",
  "name": "Company Registration",
@@ -157,12 +141,12 @@
  "sort_order": "DESC",
  "states": [
   {
-   "color": "Orange",
-   "title": "Draft"
+   "color": "Green",
+   "title": "Created"
   },
   {
-   "color": "Blue",
-   "title": "Submitted"
+   "color": "Red",
+   "title": "Disabled"
   }
  ]
 }
