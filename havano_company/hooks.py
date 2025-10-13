@@ -20,7 +20,17 @@ app_license = "mit"
 # 		"has_permission": "havano_company.api.permission.has_app_permission"
 # 	}
 # ]
-
+doc_events = {
+    "POS Opening Entry": {
+        "after_insert": "havano_pos_integration.api.submit_pos_opening_entry"
+    },
+    "POS Closing Entry": {
+        "after_insert": "havano_pos_integration.api.submit_pos_closing_entry"
+    },
+    "POS Invoice": {
+        "after_insert": "havano_pos_integration.api.submit_pos_invoice"
+    }
+}
 # Includes in <head>
 # ------------------
 
@@ -141,9 +151,12 @@ doc_events = {
 	# "*": {
 	# 	"before_insert": "havano_company.utils.set_company_field"
 	# },
-	"Company Registration": {
-		"validate": "havano_company.havano_company.web_form.company_registration.company_registration.on_submit"
-	}
+    # "Company Registration": {
+	# 	"before_insert": "havano_company.apis.company.submit_company_registration"
+	# }
+	# "Company Registration": {
+	# 	"validate": "havano_company.havano_company.web_form.company_registration.company_registration.on_submit"
+	# }
 }
 
 # Scheduled Tasks
