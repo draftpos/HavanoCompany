@@ -10,6 +10,35 @@ frappe.ready(function() {
 	
 	// Auto-populate user information
 	auto_populate_user_info();
+
+	frappe.web_form.validate = () => {
+		let organization_name = frappe.web_form.get_value('organization_name');
+		let email = frappe.web_form.get_value('email');
+		let full_name = frappe.web_form.get_value('full_name');
+		let phone = frappe.web_form.get_value('phone');
+		let industry = frappe.web_form.get_value('industry');
+		let country = frappe.web_form.get_value('country');
+		let city = frappe.web_form.get_value('city');
+
+
+		frappe.call({
+			method: 'havano_company.apis.company.register_company',
+			args: {
+				organization_name: organization_name,
+				email: email,
+				full_name: full_name,
+				phone: phone,
+				industry: industry,
+				country: country,
+				city: city
+			},
+			callback: function(r) {
+				if (r.message) {
+					frappe.msgprint(r.message);
+				}
+			}
+		});
+	}
 });
 
 function init_form_validation() {

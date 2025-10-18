@@ -6,7 +6,7 @@ from frappe import _
 
 def setup_company_role_permissions():
 	"""
-	Setup permissions for Company User Role
+	Setup permissions for Company User Role with specific granular permissions
 	"""
 	try:
 		# Create Company User Role if it doesn't exist
@@ -14,64 +14,330 @@ def setup_company_role_permissions():
 			role_doc = frappe.get_doc({
 				"doctype": "Role",
 				"role_name": "Company User Role",
-				"desk_access": 1
+				"desk_access": 1,
+				"disabled": 0
 			})
 			role_doc.insert(ignore_permissions=True)
+			frappe.logger().info("Created Company User Role")
 		
-		# Set up basic permissions for Company User Role
-		# These permissions will be restricted by company-based filtering
-		doctypes_to_permit = [
-			"Company Registration",
-			"User",
-			"Company",
-			"Customer",
-			"Supplier",
-			"Item",
-			"Sales Invoice",
-			"Purchase Invoice",
-			"Quotation",
-			"Sales Order",
-			"Purchase Order",
-			"Stock Entry",
-			"Delivery Note",
-			"Purchase Receipt"
+		# Define specific permissions for Company User Role
+		permissions = [
+			# Item - modify only if creator
+			{
+				"doctype": "Item",
+				"role": "Company User Role",
+				"read": 1,
+				"write": 1,
+				"create": 0,
+				"delete": 0,
+				"if_owner": 1,
+				"print": 1,
+				"cancel": 0,
+				"amend": 0,
+				"import": 0,
+				"export": 1,
+				"report": 1,
+				"select": 1,
+				"share": 1
+			},
+			# Product Bundle - add and modify
+			{
+				"doctype": "Product Bundle",
+				"role": "Company User Role",
+				"read": 1,
+				"write": 1,
+				"create": 1,
+				"delete": 0,
+				"print": 1,
+				"cancel": 0,
+				"amend": 0,
+				"import": 1,
+				"export": 1,
+				"report": 1,
+				"select": 1,
+				"share": 1
+			},
+			# Item Price - add and modify
+			{
+				"doctype": "Item Price",
+				"role": "Company User Role",
+				"read": 1,
+				"write": 1,
+				"create": 1,
+				"delete": 0,
+				"print": 1,
+				"cancel": 0,
+				"amend": 0,
+				"import": 1,
+				"export": 1,
+				"report": 1,
+				"select": 1,
+				"share": 1
+			},
+			# Stock Reconciliation (Stock Adjustment) - add and get
+			{
+				"doctype": "Stock Reconciliation",
+				"role": "Company User Role",
+				"read": 1,
+				"write": 1,
+				"create": 1,
+				"delete": 0,
+				"print": 1,
+				"cancel": 1,
+				"amend": 1,
+				"import": 0,
+				"export": 1,
+				"report": 1,
+				"select": 1,
+				"share": 1
+			},
+			# Stock Entry (Stock Transfer) - add and get list
+			{
+				"doctype": "Stock Entry",
+				"role": "Company User Role",
+				"read": 1,
+				"write": 1,
+				"create": 1,
+				"delete": 0,
+				"print": 1,
+				"cancel": 1,
+				"amend": 1,
+				"import": 0,
+				"export": 1,
+				"report": 1,
+				"select": 1,
+				"share": 1
+			},
+			# Purchase Invoice - create and list get
+			{
+				"doctype": "Purchase Invoice",
+				"role": "Company User Role",
+				"read": 1,
+				"write": 1,
+				"create": 1,
+				"delete": 0,
+				"submit": 1,
+				"print": 1,
+				"cancel": 1,
+				"amend": 1,
+				"import": 0,
+				"export": 1,
+				"report": 1,
+				"select": 1,
+				"share": 1
+			},
+			# Supplier - create
+			{
+				"doctype": "Supplier",
+				"role": "Company User Role",
+				"read": 1,
+				"write": 1,
+				"create": 1,
+				"delete": 0,
+				"print": 1,
+				"cancel": 0,
+				"amend": 0,
+				"import": 1,
+				"export": 1,
+				"report": 1,
+				"select": 1,
+				"share": 1
+			},
+			# Sales Invoice - create
+			{
+				"doctype": "Sales Invoice",
+				"role": "Company User Role",
+				"read": 1,
+				"write": 1,
+				"create": 1,
+				"delete": 0,
+				"submit": 1,
+				"print": 1,
+				"cancel": 1,
+				"amend": 1,
+				"import": 0,
+				"export": 1,
+				"report": 1,
+				"select": 1,
+				"share": 1
+			},
+			# Customer - for customer balances
+			{
+				"doctype": "Customer",
+				"role": "Company User Role",
+				"read": 1,
+				"write": 1,
+				"create": 1,
+				"delete": 0,
+				"print": 1,
+				"cancel": 0,
+				"amend": 0,
+				"import": 1,
+				"export": 1,
+				"report": 1,
+				"select": 1,
+				"share": 1
+			},
+			# Payment Entry - for payments entry
+			{
+				"doctype": "Payment Entry",
+				"role": "Company User Role",
+				"read": 1,
+				"write": 1,
+				"create": 1,
+				"delete": 0,
+				"submit": 1,
+				"print": 1,
+				"cancel": 1,
+				"amend": 1,
+				"import": 0,
+				"export": 1,
+				"report": 1,
+				"select": 1,
+				"share": 1
+			},
+			# Currency Exchange - for exchange rate (read only)
+			{
+				"doctype": "Currency Exchange",
+				"role": "Company User Role",
+				"read": 1,
+				"write": 0,
+				"create": 0,
+				"delete": 0,
+				"print": 0,
+				"cancel": 0,
+				"amend": 0,
+				"import": 0,
+				"export": 1,
+				"report": 1,
+				"select": 1,
+				"share": 0
+			},
+			# Item Group - get item group (read only)
+			{
+				"doctype": "Item Group",
+				"role": "Company User Role",
+				"read": 1,
+				"write": 0,
+				"create": 0,
+				"delete": 0,
+				"print": 0,
+				"cancel": 0,
+				"amend": 0,
+				"import": 0,
+				"export": 1,
+				"report": 1,
+				"select": 1,
+				"share": 0
+			},
+			# Warehouse - get warehouse (read only)
+			{
+				"doctype": "Warehouse",
+				"role": "Company User Role",
+				"read": 1,
+				"write": 0,
+				"create": 0,
+				"delete": 0,
+				"print": 0,
+				"cancel": 0,
+				"amend": 0,
+				"import": 0,
+				"export": 1,
+				"report": 1,
+				"select": 1,
+				"share": 0
+			},
+			# Cost Center - get cost center (read only)
+			{
+				"doctype": "Cost Center",
+				"role": "Company User Role",
+				"read": 1,
+				"write": 0,
+				"create": 0,
+				"delete": 0,
+				"print": 0,
+				"cancel": 0,
+				"amend": 0,
+				"import": 0,
+				"export": 1,
+				"report": 1,
+				"select": 1,
+				"share": 0
+			},
+			# Company Registration - for company management
+			{
+				"doctype": "Company Registration",
+				"role": "Company User Role",
+				"read": 1,
+				"write": 1,
+				"create": 1,
+				"delete": 0,
+				"print": 1,
+				"cancel": 0,
+				"amend": 0,
+				"import": 0,
+				"export": 1,
+				"report": 1,
+				"select": 1,
+				"share": 1
+			},
+			# Company - read access
+			{
+				"doctype": "Company",
+				"role": "Company User Role",
+				"read": 1,
+				"write": 0,
+				"create": 0,
+				"delete": 0,
+				"print": 0,
+				"cancel": 0,
+				"amend": 0,
+				"import": 0,
+				"export": 1,
+				"report": 1,
+				"select": 1,
+				"share": 0
+			}
 		]
 		
-		for doctype in doctypes_to_permit:
-			if frappe.db.exists("DocType", doctype):
-				# Check if permission already exists
-				if not frappe.db.exists("Custom DocPerm", {
-					"parent": doctype,
-					"role": "Company User Role"
-				}):
-					perm_doc = frappe.get_doc({
+		# Add permissions to the role
+		for perm in permissions:
+			doctype = perm.pop("doctype")
+			role = perm.pop("role")
+			
+			# Check if DocType exists
+			if not frappe.db.exists("DocType", doctype):
+				frappe.logger().warning(f"DocType {doctype} not found, skipping...")
+				continue
+			
+			# Check if permission already exists
+			existing_perm = frappe.db.exists("Custom DocPerm", {
+				"parent": doctype,
+				"role": role
+			})
+			
+			if not existing_perm:
+				# Add the permission
+				try:
+					custom_perm = frappe.get_doc({
 						"doctype": "Custom DocPerm",
 						"parent": doctype,
 						"parenttype": "DocType",
 						"parentfield": "permissions",
-						"role": "Company User Role",
-						"read": 1,
-						"write": 1,
-						"create": 1,
-						"delete": 1,
-						"submit": 1,
-						"cancel": 1,
-						"amend": 1,
-						"report": 1,
-						"export": 1,
-						"import": 1,
-						"share": 1,
-						"print": 1,
-						"email": 1
+						"role": role,
+						**perm
 					})
-					perm_doc.insert(ignore_permissions=True)
+					custom_perm.insert(ignore_permissions=True)
+					frappe.logger().info(f"Added permission for {role} on {doctype}")
+				except Exception as e:
+					frappe.logger().warning(f"Could not add permission for {role} on {doctype}: {str(e)}")
 		
 		frappe.db.commit()
-		frappe.msgprint(_("Company User Role permissions setup completed successfully"))
+		frappe.logger().info("Company User Role permissions setup completed successfully")
 		
 	except Exception as e:
-		frappe.log_error(frappe.get_traceback(), "Company Role Setup Error")
-		frappe.throw(_("Failed to setup company role permissions"))
+		frappe.db.rollback()
+		frappe.log_error("Company Role Setup Error", frappe.get_traceback())
 
 def after_install():
 	"""

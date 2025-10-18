@@ -102,7 +102,7 @@ def register_company(organization_name, full_name=None, email=None, phone=None, 
     
     except Exception as e:
         frappe.db.rollback()
-        frappe.log_error(frappe.get_traceback(), "Company Registration Error")
+        frappe.log_error("Company Registration Error", frappe.get_traceback())
         create_response(
             status=400,
             message=str(e)
@@ -148,7 +148,7 @@ def get_company_registration():
             return
     
     except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "Get Company Registration Error")
+        frappe.log_error("Get Company Registration Error", frappe.get_traceback())
         create_response(
             status=400,
             message=str(e)
@@ -228,7 +228,7 @@ def update_company_registration(organization_name=None, full_name=None, email=No
     
     except Exception as e:
         frappe.db.rollback()
-        frappe.log_error(frappe.get_traceback(), "Update Company Registration Error")
+        frappe.log_error("Update Company Registration Error", frappe.get_traceback())
         create_response(
             status=400,
             message=str(e)
@@ -265,7 +265,7 @@ def delete_company_registration():
     
     except Exception as e:
         frappe.db.rollback()
-        frappe.log_error(frappe.get_traceback(), "Delete Company Registration Error")
+        frappe.log_error("Delete Company Registration Error", frappe.get_traceback())
         create_response(
             status=400,
             message=str(e)
@@ -292,7 +292,7 @@ def get_industry_options():
         )
     
     except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "Get Industry Options Error")
+        frappe.log_error("Get Industry Options Error", frappe.get_traceback())
         create_response(
             status=400,
             message=str(e)
@@ -395,7 +395,7 @@ def assign_user_to_company(user_email, company_name=None):
         
     except Exception as e:
         frappe.db.rollback()
-        frappe.log_error(frappe.get_traceback(), "Assign User to Company Error")
+        frappe.log_error("Assign User to Company Error", frappe.get_traceback())
         create_response(
             status=400,
             message=str(e)
@@ -482,7 +482,7 @@ def remove_user_from_company(user_email, company_name=None):
         
     except Exception as e:
         frappe.db.rollback()
-        frappe.log_error(frappe.get_traceback(), "Remove User from Company Error")
+        frappe.log_error("Remove User from Company Error", frappe.get_traceback())
         create_response(
             status=400,
             message=str(e)
@@ -577,7 +577,7 @@ def get_company_users(company_name=None):
         return
         
     except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "Get Company Users Error")
+        frappe.log_error("Get Company Users Error", frappe.get_traceback())
         create_response(
             status=400,
             message=str(e)
@@ -664,7 +664,7 @@ def get_user_companies(user_email=None):
         return
         
     except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "Get User Companies Error")
+        frappe.log_error("Get User Companies Error", frappe.get_traceback())
         create_response(
             status=400,
             message=str(e)
@@ -691,7 +691,7 @@ def submit_company_registration(company_registration):
         )
     except Exception as e:
         frappe.db.rollback()
-        frappe.log_error(frappe.get_traceback(), "Submit Company Registration Error")
+        frappe.log_error("Submit Company Registration Error", frappe.get_traceback())
         create_response(
             status=400,
             message=str(e)
@@ -700,11 +700,22 @@ def submit_company_registration(company_registration):
 def create_user_permission_for_company(user, company):
 	"""Create user permission for the company"""
 	try:
+		# Create Company User Role if it doesn't exist
+		if not frappe.db.exists("Role", "Company User Role"):
+			company_user_role = frappe.get_doc({
+				"doctype": "Role",
+				"role_name": "Company User Role",
+				"desk_access": 1,
+				"disabled": 0
+			})
+			company_user_role.insert(ignore_permissions=True)
+		
 		# Update user type to System User
 		frappe.db.set_value("User", user, "user_type", "System User")
 
 		# Define comprehensive roles for full ERPNext access
 		roles_to_assign = [
+			"Company User Role",
 			"System Manager",
 			"Accounts Manager", 
 			"Sales Manager",
@@ -773,9 +784,8 @@ def create_user_permission_for_company(user, company):
 			frappe.logger().info(f"User permission created for user {user} and company {company}")
 		
 	except Exception as e:
-		frappe.log_error(f"Error creating user permission: {str(e)}")
+		frappe.log_error("Error creating user permission", f"Failed to create user permission for user {user} and company {company}: {str(e)}\n\n{frappe.get_traceback()}")
 		# Don't throw error to avoid blocking the process
-		frappe.logger().error(f"Failed to create user permission for user {user} and company {company}: {str(e)}")
 
 def create_company(company_name, country, company_abbr):
     """
@@ -821,14 +831,14 @@ def create_company(company_name, country, company_abbr):
                 time.sleep(wait_time)
             else:
                 # Max retries reached
-                frappe.logger().error(
-                    f"Failed to create company '{company_name}' after {max_retries} attempts due to deadlock"
+                frappe.log_error(
+                    "Company Creation Failed - Deadlock",
+                    f"Failed to create company '{company_name}' after {max_retries} attempts due to deadlock\n\n{frappe.get_traceback()}"
                 )
                 frappe.throw(_("Failed to create company due to database deadlock. Please try again in a moment."))
                 
         except Exception as e:
             # For non-deadlock errors, rollback and throw immediately
             frappe.db.rollback()
-            frappe.logger().error(f"Error creating company '{company_name}': {str(e)}")
+            frappe.log_error("Company Creation Error", f"Error creating company '{company_name}': {str(e)}\n\n{frappe.get_traceback()}")
             frappe.throw(_("Failed to create company. Please try again."))
-		

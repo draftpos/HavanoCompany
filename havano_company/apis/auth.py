@@ -33,6 +33,9 @@ def login(usr,pwd, timezone):
         return
     
     user = frappe.get_doc('User',frappe.session.user)
+    api_generate=generate_keys(user)
+       
+    token_string = str(api_generate['api_key']) +":"+ str(api_generate['api_secret'])
 
     # Get user permissions for warehouse and cost center
     warehouses = frappe.get_list("User Permission", 
@@ -138,6 +141,9 @@ def login(usr,pwd, timezone):
         "company_registration": company_registration[0] if company_registration else None,
         "company_message": company_message
     }
+
+    frappe.response["token_string"] = token_string
+    frappe.response["token"] =  base64.b64encode(token_string.encode("ascii")).decode("utf-8")
     
     # Add help information if no company
     if not has_company:
@@ -188,4 +194,40 @@ def verify_company_registration():
             status=401,
             message=str(e)
         )
+        return
+
+def generate_keys(user):
+    api_secret = api_key = ''
+    if not user.api_key and not user.api_secret:
+        api_secret = frappe.generate_hash(length=15)
+        # if api key is not set generate api key
+        api_key = frappe.generate_hash(length=15)
+        user.api_key = api_key
+        user.api_secret = api_secret
+        user.save(ignore_permissions=True)
+    else:
+        api_secret = user.get_password('api_secret')
+        api_key = user.get('api_key')
+    return {"api_secret": api_secret, "api_key": api_key}
+
+# For Verfiy OTP Function
+@frappe.whitelist(allow_guest=True)
+def logout(user):
+    try:
+        user = frappe.get_doc("User",user)
+        user.api_key = None
+        user.api_secret = None
+        user.save(ignore_permissions = True)
+        
+        frappe.local.login_manager.logout()
+        create_response(200, "Logged Out Successfully")
+        return
+    except frappe.DoesNotExistError:
+        # Handle case where user document is not found
+        frappe.log_error(f"User '{user}' does not exist.", "Logout Failed")
+        create_response(404, "User not found")
+        return
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Logout Failed")
+        create_response(417, "Something went wrong", str(e))
         return
