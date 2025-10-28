@@ -84,7 +84,32 @@ def register_company(organization_name, full_name=None, email=None, phone=None, 
         company_registration.company = company_registration.organization_name
         company_registration.save(ignore_permissions=True)
         frappe.db.commit()
-        
+
+        warehouse = frappe.get_all(
+            "Warehouse",
+            filters={
+                "company": organization_name,
+                "warehouse_name": ["like", "Stores%"]
+            },
+            fields=["name"],
+            limit=1
+        )
+
+        if warehouse:
+            user_permission = frappe.get_doc({
+            "doctype": "User Permission",
+            "user": user_email,
+            "allow": "Warehouse",
+            "for_value": warehouse,
+            "apply_to_all_doctypes": 1,
+            "is_default": 1 
+            })
+            user_permission.insert(ignore_permissions=True)
+            frappe.db.commit()
+        else:
+            print("No warehouse found starting with 'Stores'")
+
+                
         create_response(
             status=201,
             message=_("Company registered successfully"),
@@ -94,10 +119,16 @@ def register_company(organization_name, full_name=None, email=None, phone=None, 
                     "organization_name": organization_name,
                     "full_name": full_name,
                     "email": email,
-                    "user_created": user
+                    "user_created": user,
+                    "defual_warehouse":warehouse
                 }
             }
         )
+        # -----------------------------------get warehouse
+       
+
+
+            
         return
     
     except Exception as e:
