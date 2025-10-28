@@ -109,6 +109,41 @@ def register_company(organization_name, full_name=None, email=None, phone=None, 
         else:
             print("No warehouse found starting with 'Stores'")
 
+        def_customer=create_customer(f"cust-{organization_name}")
+        
+        try:
+            user_permission = frappe.get_doc({
+            "doctype": "User Permission",
+            "user": user_email,
+            "allow": "Customer",
+            "for_value": def_customer["customer_id"],
+            "apply_to_all_doctypes": 1,
+            "is_default": 1 
+            })
+            user_permission.insert(ignore_permissions=True)
+            frappe.db.commit()
+
+        except Exception as e:
+            return e
+
+        try:
+            cost_center=default_cost_center(organization_name)
+            user_permission = frappe.get_doc({
+            "doctype": "User Permission",
+            "user": user_email,
+            "allow": "Cost Center",
+            "for_value": cost_center,
+            "apply_to_all_doctypes": 1,
+            "is_default": 1 
+            })
+            user_permission.insert(ignore_permissions=True)
+            frappe.db.commit()
+
+        except Exception as e:
+            return e
+    
+   
+
                 
         create_response(
             status=201,
@@ -120,7 +155,8 @@ def register_company(organization_name, full_name=None, email=None, phone=None, 
                     "full_name": full_name,
                     "email": email,
                     "user_created": user,
-                    "defual_warehouse":warehouse
+                    "defual_warehouse":warehouse,
+                    "default_customer":def_customer
                 }
             }
         )
@@ -140,6 +176,69 @@ def register_company(organization_name, full_name=None, email=None, phone=None, 
         )
         return
 
+
+
+@frappe.whitelist()
+def default_cost_center(cost_center_name):
+    """
+    Returns the first Cost Center whose name prefix matches the input (case-insensitive).
+    """
+    if not cost_center_name:
+        return None
+
+    prefix = cost_center_name.split("-")[0].upper()  # Input prefix
+
+    all_cc = frappe.get_all("Cost Center", fields=["name"])
+    for cc in all_cc:
+        cc_name = cc["name"]
+        cc_prefix = cc_name.split("-")[0].upper()
+        if cc_prefix.startswith(prefix):
+            return cc_name  # Return the name string
+
+    return None
+
+
+@frappe.whitelist()
+def create_customer(
+    customer_name,
+):
+    """
+    Creates a Customer with extended custom fields and address info.
+    """
+
+    # --- Step 1: Check if customer exists ---
+    if frappe.db.exists("Customer", {"customer_name": customer_name}):
+        return {"message": f"Customer {customer_name} already exists"}
+
+    # --- Step 2: Create the Customer ---
+    customer = frappe.get_doc({
+        "doctype": "Customer",
+        "customer_name": customer_name,
+        "customer_type": "Individual",
+        "customer_group": "All Customer Groups",
+        "territory": "All Territories",
+        # Custom fields
+        "custom_telephone_number": "000000000",
+        "custom_email_address": "custom_email_address",
+        "custom_customer_tin": "000000000",
+        "custom_customer_vat": "000000000",
+        "custom_trade_name": "custom_trade_name",
+        "custom_customer_address": "custom_customer_address",
+        "custom_street": "custom_street",
+        "custom_house_no": "custom_house_no",
+        "custom_city": "custom_city",
+        "custom_province": "custom_province"
+    })
+
+    # --- Step 3: Insert the record ---
+    customer.insert(ignore_permissions=True)
+    frappe.db.commit()
+
+    return {
+        "message": "Customer created successfully",
+        "customer_id": customer.name,
+        "customer_name": customer.customer_name
+    }
 
 @frappe.whitelist()
 def get_company_registration():
