@@ -108,6 +108,33 @@ def register_company(organization_name, full_name=None, email=None, phone=None, 
             frappe.db.commit()
         else:
             print("No warehouse found starting with 'Stores'")
+        
+        # ----------------------------------------------------------------------
+        all_warehouse = frappe.get_all(
+                "Warehouse",
+                filters={"company": organization_name},
+                fields=["name"]
+            )
+
+        for i in all_warehouse:
+            try:
+               
+                if i["name"] != warehouse[0]['name']:
+                    print(f"--------------name--------{i["name"]}")
+                    print(f"-----------def warehouse-----------{warehouse[0]['name']}")
+                    user_permission = frappe.get_doc({
+                        "doctype": "User Permission",
+                        "user": user_email,
+                        "allow": "Warehouse",
+                        "for_value": i["name"],
+                        "apply_to_all_doctypes": 1,
+                        "is_default": 0
+                    })
+                    user_permission.insert(ignore_permissions=True)
+                    frappe.db.commit()
+            except Exception as e:
+                frappe.log_error(f"Error assigning warehouse permission: {str(e)}")
+        # ----------------------------------------------------------------------
 
         def_customer=create_customer(f"cust-{organization_name}")
         
