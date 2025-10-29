@@ -120,8 +120,6 @@ def register_company(organization_name, full_name=None, email=None, phone=None, 
             try:
                
                 if i["name"] != warehouse[0]['name']:
-                    print(f"--------------name--------{i["name"]}")
-                    print(f"-----------def warehouse-----------{warehouse[0]['name']}")
                     user_permission = frappe.get_doc({
                         "doctype": "User Permission",
                         "user": user_email,
