@@ -179,24 +179,30 @@ def register_company(organization_name, full_name=None, email=None, phone=None, 
 
 
 @frappe.whitelist()
-def default_cost_center(cost_center_name):
+@frappe.whitelist()
+def default_cost_center(company):
     """
-    Returns the first Cost Center whose name prefix matches the input (case-insensitive).
+    Returns the first Cost Center for a given company
+    whose name starts with 'Main' (case-insensitive).
     """
-    if not cost_center_name:
+    if not company:
         return None
 
-    prefix = cost_center_name.split("-")[0].upper()  # Input prefix
+    # Fetch all cost centers for this company
+    cost_centers = frappe.get_all(
+        "Cost Center",
+        filters={"company": company},
+        fields=["name"],
+    )
 
-    all_cc = frappe.get_all("Cost Center", fields=["name"])
-    for cc in all_cc:
+    # Find the first one that starts with 'Main'
+    for cc in cost_centers:
         cc_name = cc["name"]
-        cc_prefix = cc_name.split("-")[0].upper()
-        if cc_prefix.startswith(prefix):
-            return cc_name  # Return the name string
+        if cc_name.upper().startswith("MAIN"):
+            print(f"-------------------Matched: {cc_name}")
+            return cc_name
 
     return None
-
 
 @frappe.whitelist()
 def create_customer(
