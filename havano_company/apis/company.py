@@ -1003,3 +1003,56 @@ def create_company(company_name, country, company_abbr):
             frappe.db.rollback()
             frappe.log_error("Company Creation Error", f"Error creating company '{company_name}': {str(e)}\n\n{frappe.get_traceback()}")
             frappe.throw(_("Failed to create company. Please try again."))
+
+
+
+
+@frappe.whitelist()
+def create_customer(
+    customer_name,
+    custom_trade_name=None,
+    custom_customer_tin=None,
+    custom_customer_vat=None,
+    custom_customer_address=None,
+    custom_telephone_number=None,
+    custom_province=None,
+    custom_street=None,
+    custom_city=None,
+    custom_house_no=None,
+    custom_email_address=None,
+    customer_type="Individual",
+    default_price_list=None,
+    default_cost_center=None,
+    default_warehouse=None
+
+):
+    try:
+        customer = frappe.get_doc({
+            "doctype": "Customer",
+            "customer_name": customer_name,
+            "customer_type": customer_type,
+            "custom_trade_name": custom_trade_name,
+            "custom_customer_tin": custom_customer_tin,
+            "custom_customer_vat": custom_customer_vat,
+            "custom_customer_address": custom_customer_address,
+            "custom_telephone_number": custom_telephone_number,
+            "custom_province": custom_province,
+            "custom_street": custom_street,
+            "custom_city": custom_city,
+            "custom_house_no": custom_house_no,
+            "custom_email_address": custom_email_address,
+            "default_price_list":default_price_list,
+            "custom_cost_center": default_cost_center,
+            "custom_warehouse": default_warehouse
+        })
+
+        # Ignore permission restrictions
+        customer.insert(ignore_permissions=True)
+        frappe.db.commit()
+
+        frappe.logger().info(f"✅ Customer created: {customer.name}")
+        return {"customer_id": customer.name}
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Create Customer Error")
+        return {"error": str(e)}
