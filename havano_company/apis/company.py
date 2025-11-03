@@ -482,18 +482,18 @@ def assign_user_to_company(user_email, company_name=None):
             frappe.throw(_("User not found"))
         
         # If company_name not provided, get current user's company
-        if not company_name:
-            company_registration = frappe.db.get_value(
-                "Company Registration",
-                {"user_created": current_user},
-                ["company"],
-                as_dict=True
-            )
-            
-            if not company_registration or not company_registration.company:
-                frappe.throw(_("You do not have a company to assign users to"))
-            
-            company_name = company_registration.company
+  
+        company_registration = frappe.db.get_value(
+            "Company Registration",
+            {"user_created": current_user},
+            ["company"],
+            as_dict=True
+        )
+        
+        if not company_registration or not company_registration.company:
+            frappe.throw(_("You do not have a company to assign users to"))
+        
+        company_name = company_registration.company
         
         # Validate company exists
         if not frappe.db.exists("Company", company_name):
@@ -533,23 +533,15 @@ def assign_user_to_company(user_email, company_name=None):
             return
         
         # Create user permission
-        user_permission = frappe.get_doc({
-            "doctype": "User Permission",
-            "user": user_email,
-            "allow": "Company",
-            "for_value": company_name,
-            "apply_to_all_doctypes": 1
-        })
-        user_permission.insert(ignore_permissions=True)
-        frappe.db.commit()
-        
+        created_permissions = clone_user_permissions(user_email)
+
         create_response(
             status=201,
             message=_("User assigned to company successfully"),
             data={
                 "user": user_email,
                 "company": company_name,
-                "permission": user_permission.name
+                "permission": created_permissions  # list of names
             }
         )
         return
@@ -562,6 +554,45 @@ def assign_user_to_company(user_email, company_name=None):
             message=str(e)
         )
         return
+        
+def clone_user_permissions(user_email):
+    created_perms = []
+    try:
+        logged_user = frappe.session.user
+
+        logged_user_perms = frappe.get_all(
+            "User Permission",
+            filters={"user": logged_user},
+            fields=["allow", "for_value", "apply_to_all_doctypes", "is_default"]
+        )
+
+        for perm in logged_user_perms:
+            # Skip duplicates
+            if frappe.db.exists("User Permission", {
+                "user": user_email,
+                "allow": perm["allow"],
+                "for_value": perm["for_value"]
+            }):
+                continue
+
+            new_perm = frappe.get_doc({
+                "doctype": "User Permission",
+                "user": user_email,
+                "allow": perm["allow"],
+                "for_value": perm["for_value"],
+                "apply_to_all_doctypes": perm["apply_to_all_doctypes"],
+                "is_default": 0
+            })
+            new_perm.insert(ignore_permissions=True)
+            created_perms.append(new_perm.name)
+
+        frappe.db.commit()
+        return created_perms
+
+    except Exception as e:
+        frappe.log_error(str(e), "Clone User Permissions Error")
+        frappe.db.rollback()
+        return []
 
 
 @frappe.whitelist()
