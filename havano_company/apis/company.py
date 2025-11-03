@@ -1073,7 +1073,7 @@ def get_my_product_bundles():
         items = frappe.get_all(
             "Product Bundle Item",
             filters={"parent": b.name},
-            fields=["item_code", "qty"]
+            fields=["item_code", "item_name","qty"]
         )
         b["items"] = items
 
