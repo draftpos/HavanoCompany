@@ -134,7 +134,7 @@ def register_company(organization_name, full_name=None, email=None, phone=None, 
                 frappe.log_error(f"Error assigning warehouse permission: {str(e)}")
         # ----------------------------------------------------------------------
 
-        def_customer=create_customer(f"cust-{organization_name}")
+        def_customer=create_customer_default(f"cust-{organization_name}")
         
         try:
             user_permission = frappe.get_doc({
@@ -230,7 +230,7 @@ def default_cost_center(company):
     return None
 
 @frappe.whitelist()
-def create_customer(
+def create_customer_default(
     customer_name,
 ):
     """
@@ -1005,8 +1005,6 @@ def create_company(company_name, country, company_abbr):
             frappe.throw(_("Failed to create company. Please try again."))
 
 
-
-
 @frappe.whitelist()
 def create_customer(
     customer_name,
@@ -1045,7 +1043,6 @@ def create_customer(
             "custom_cost_center": default_cost_center,
             "custom_warehouse": default_warehouse
         })
-
         # Ignore permission restrictions
         customer.insert(ignore_permissions=True)
         frappe.db.commit()
