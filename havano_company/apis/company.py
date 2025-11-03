@@ -1053,3 +1053,33 @@ def create_customer(
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Create Customer Error")
         return {"error": str(e)}
+
+
+
+@frappe.whitelist()  # user must be logged in
+def get_my_product_bundles():
+    """Return all Product Bundles created by the logged-in user, including items."""
+    
+    # get the logged in user
+    user = frappe.session.user
+
+    # if guest user, deny access
+    if user == "Guest":
+        frappe.throw("You must be logged in to access your product bundles.")
+
+    # get all bundles created by this user
+    bundles = frappe.get_all(
+        "Product Bundle",
+        filters={"owner": user},
+        fields=["name", "new_item_code", "description", "creation"]
+    )
+
+    # attach items to each bundle
+    for b in bundles:
+        b["items"] = frappe.get_all(
+            "Product Bundle Item",
+            filters={"parent": b.name},
+            fields=["item_code", "qty"]
+        )
+
+    return bundles
