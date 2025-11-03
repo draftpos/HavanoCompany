@@ -33,6 +33,7 @@ def login(usr,pwd, timezone):
         return
     
     user = frappe.get_doc('User',frappe.session.user)
+    print(f"--------------------------------user----------------{user.get("role_select")}")
     api_generate=generate_keys(user)
        
     token_string = str(api_generate['api_key']) +":"+ str(api_generate['api_secret'])
@@ -120,7 +121,8 @@ def login(usr,pwd, timezone):
     company_message = None
     if not has_company:
         company_message = "You need to register your company to access all features."
-        
+
+    # user_role = frappe.get_doc('User',frappe.session.user)
     frappe.response["user"] =   {
         "first_name": escape_html(user.first_name or ""),
         "last_name": escape_html(user.last_name or ""),
@@ -139,7 +141,9 @@ def login(usr,pwd, timezone):
         "company" : company_registration[0].get("company") if company_registration else None,
         "has_company_registration": has_company,
         "company_registration": company_registration[0] if company_registration else None,
-        "company_message": company_message
+        "company_message": company_message,
+        "role": user.get("role_select") or ""
+# 
     }
 
     frappe.response["token_string"] = token_string
