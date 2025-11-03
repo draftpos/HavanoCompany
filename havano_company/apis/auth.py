@@ -33,7 +33,6 @@ def login(usr,pwd, timezone):
         return
     
     user = frappe.get_doc('User',frappe.session.user)
-    print(f"--------------------------------user----------------{user.get("role_select")}")
     api_generate=generate_keys(user)
        
     token_string = str(api_generate['api_key']) +":"+ str(api_generate['api_secret'])
