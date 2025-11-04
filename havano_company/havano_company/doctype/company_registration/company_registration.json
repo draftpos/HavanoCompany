@@ -10,6 +10,8 @@
   "email",
   "phone",
   "industry",
+  "subscription",
+  "days_left",
   "column_break_dwnz",
   "organization_name",
   "country",
@@ -102,13 +104,23 @@
    "print_hide": 1,
    "read_only": 1,
    "search_index": 1
+  },
+  {
+   "fieldname": "subscription",
+   "fieldtype": "Date",
+   "label": "Subscription"
+  },
+  {
+   "fieldname": "days_left",
+   "fieldtype": "Int",
+   "label": "Days Left",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
- "is_submittable": 0,
  "links": [],
- "modified": "2025-09-20 08:19:17.984372",
+ "modified": "2025-11-04 11:06:24.749182",
  "modified_by": "Administrator",
  "module": "Havano Company",
  "name": "Company Registration",
@@ -125,14 +137,12 @@
    "report": 1,
    "role": "System Manager",
    "share": 1,
-   "submit": 1,
    "write": 1
   },
   {
    "create": 1,
    "read": 1,
    "role": "Guest",
-   "submit": 1,
    "write": 1
   }
  ],
