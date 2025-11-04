@@ -12,6 +12,7 @@
   "industry",
   "subscription",
   "days_left",
+  "company_status",
   "column_break_dwnz",
   "organization_name",
   "country",
@@ -115,13 +116,19 @@
    "fieldtype": "Int",
    "label": "Days Left",
    "read_only": 1
+  },
+  {
+   "fieldname": "company_status",
+   "fieldtype": "Select",
+   "label": "Company Status",
+   "options": "Active\nExpired\nDormant\nRenewed\nOverdue 1 Day\nNo Sales Invoice\nLess than 10 Inventory Items"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-11-04 11:06:24.749182",
- "modified_by": "Administrator",
+ "modified": "2025-11-04 11:54:26.461102",
+ "modified_by": "testcom9@gmail.com",
  "module": "Havano Company",
  "name": "Company Registration",
  "naming_rule": "Expression (old style)",

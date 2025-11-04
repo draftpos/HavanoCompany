@@ -93,7 +93,7 @@ def login(usr,pwd, timezone):
 
     # Get all docs created by or assigned to the user
     company_registration = frappe.db.sql("""
-        SELECT name, organization_name, status, company, industry, country, city,subscription,days_left
+        SELECT name, organization_name, status, company, industry, country, city,company_status,subscription,days_left
         FROM `tabCompany Registration`
         WHERE user_created = %(user)s
         OR name IN (
