@@ -7,7 +7,7 @@ from havano_company.apis.utils import create_response
 
 
 @frappe.whitelist(allow_guest=True)
-def signup(email, password, first_name, last_name=None, full_name=None):
+def signup(email, password, first_name, last_name=None, full_name=None,pin=None):
     """
     API endpoint for user signup
     
@@ -28,7 +28,9 @@ def signup(email, password, first_name, last_name=None, full_name=None):
         
         if not password:
             frappe.throw(_("Password is required"))
-        
+        if not pin:
+            frappe.throw(_("Pin is required"))
+            
         if not first_name:
             frappe.throw(_("First name is required"))
         
@@ -51,7 +53,7 @@ def signup(email, password, first_name, last_name=None, full_name=None):
                 full_name = f"{first_name} {last_name}"
             else:
                 full_name = first_name
-        pin = random.randint(1000, 9999)
+        # pin = random.randint(1000, 9999)
 
         
         # Create new user
