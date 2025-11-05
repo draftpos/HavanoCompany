@@ -2,6 +2,7 @@ import frappe
 from frappe import _
 from frappe.utils import validate_email_address
 import re
+import random
 from havano_company.apis.utils import create_response
 
 
@@ -50,6 +51,8 @@ def signup(email, password, first_name, last_name=None, full_name=None):
                 full_name = f"{first_name} {last_name}"
             else:
                 full_name = first_name
+        pin = random.randint(1000, 9999)
+
         
         # Create new user
         user = frappe.get_doc({
@@ -61,7 +64,8 @@ def signup(email, password, first_name, last_name=None, full_name=None):
             "enabled": 1,
             "new_password": password,
             "send_welcome_email": 1,  # Set to 1 if you want to send welcome email
-            "user_type": "System User"  # Change to "Website User" if needed
+            "user_type": "System User",
+            "pin":pin
         })
         
         user.flags.ignore_permissions = True
@@ -80,7 +84,8 @@ def signup(email, password, first_name, last_name=None, full_name=None):
                     "email": email,
                     "full_name": full_name,
                     "first_name": first_name,
-                    "last_name": last_name
+                    "last_name": last_name,
+                    "pin":pin
                 }
             }
         )

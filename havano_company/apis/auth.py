@@ -142,6 +142,7 @@ def login(usr,pwd, timezone):
         "company_registration": company_registration[0] if company_registration else None,
         "company_message": company_message,
         "role": user.get("role_select") or "",
+        "pin":user.get("pin")
         # "subscription":company_registration[0].get("subscription") if company_registration else None,
 # 
     }
