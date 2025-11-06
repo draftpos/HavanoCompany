@@ -7,7 +7,7 @@ from havano_company.apis.utils import create_response
 
 
 @frappe.whitelist(allow_guest=True)
-def signup(email, password, first_name, last_name=None, full_name=None,pin=None):
+def signup(email, password, first_name, last_name=None, full_name=None,pin=None,phone_number=None):
     """
     API endpoint for user signup
     
@@ -33,6 +33,9 @@ def signup(email, password, first_name, last_name=None, full_name=None,pin=None)
             
         if not first_name:
             frappe.throw(_("First name is required"))
+
+        if not phone_number:
+            frappe.throw(_("Phone number is required"))
         
         # Validate email format
         try:
@@ -67,7 +70,8 @@ def signup(email, password, first_name, last_name=None, full_name=None,pin=None)
             "new_password": password,
             "send_welcome_email": 1,  # Set to 1 if you want to send welcome email
             "user_type": "System User",
-            "pin":pin
+            "pin":pin,
+            "phone_number":phone_number
         })
         
         user.flags.ignore_permissions = True
@@ -101,6 +105,83 @@ def signup(email, password, first_name, last_name=None, full_name=None,pin=None)
             message=str(e)
         )
         return
+
+
+@frappe.whitelist(allow_guest=True)
+def edit_user(email, first_name=None, last_name=None, full_name=None, password=None, pin=None,user_status=None,phone_number=None):
+    """
+    API endpoint to edit an existing user
+    
+    Args:
+        email: User's email address (required to identify the user)
+        first_name: New first name (optional)
+        last_name: New last name (optional)
+        full_name: New full name (optional, will be constructed if not provided)
+        password: New password (optional)
+        pin: New PIN (optional)
+    
+    Returns:
+        dict: Success message with updated user details
+    """
+    try:
+        if not email:
+            frappe.throw(_("Email is required"))
+
+        user = frappe.get_doc("User", email)
+        if not user:
+            frappe.throw(_("User not found"))
+
+        # Update fields if provided
+        if first_name:
+            user.first_name = first_name
+        if last_name:
+            user.last_name = last_name
+        if last_name:
+            user.last_name = last_name
+        if full_name:
+            user.full_name = full_name
+        if phone_number:
+            user.phone_number = phone_number
+        elif first_name or last_name:
+            # Construct full_name if not provided
+            user.full_name = f"{user.first_name} {user.last_name}".strip()
+
+        if password:
+            # Optionally validate password strength
+            validate_password(password)
+            user.new_password = password
+
+        if pin:
+            user.pin = pin
+
+        user.flags.ignore_permissions = True
+        user.save()
+        frappe.db.commit()
+
+        create_response(
+            status=200,
+            message=_("User updated successfully"),
+            data={
+                "user": {
+                    "email": user.email,
+                    "full_name": user.full_name,
+                    "first_name": user.first_name,
+                    "last_name": user.last_name,
+                    "pin": getattr(user, "pin", None)
+                }
+            }
+        )
+        return
+
+    except Exception as e:
+        frappe.db.rollback()
+        frappe.log_error(frappe.get_traceback(), "Edit User Error")
+        create_response(
+            status=400,
+            message=str(e)
+        )
+        return
+
 
 
 def validate_password(password):
