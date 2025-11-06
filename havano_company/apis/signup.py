@@ -182,6 +182,44 @@ def edit_user(email, first_name=None, last_name=None, full_name=None, password=N
         )
         return
 
+@frappe.whitelist()
+def get_users():
+    """
+    Returns a list of users created by the currently logged-in user
+    with fields similar to ERPNext's default User list.
+    """
+    try:
+        if not frappe.session.user or frappe.session.user == "Guest":
+            return {
+                "status": 403,
+                "message": _("Login required to fetch users"),
+                "data": []
+            }
+
+        users = frappe.get_all(
+            "User",
+            filters={"owner": frappe.session.user},
+            fields=["name", "email", "full_name", "first_name", "last_name", "phone_number", "enabled", "user_type"]
+        )
+
+        # Fetch roles for each user
+        for user in users:
+            user_doc = frappe.get_doc("User", user["name"])
+            user["roles"] = [role.role for role in user_doc.roles]
+
+        return {
+            "status": 200,
+            "message": _("Users fetched successfully"),
+            "data": users
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Get Users Error")
+        return {
+            "status": 400,
+            "message": str(e),
+            "data": []
+        }
 
 
 def validate_password(password):
