@@ -108,7 +108,7 @@ def signup(email, password, first_name, last_name=None, full_name=None,pin=None,
 
 
 @frappe.whitelist(allow_guest=True)
-def edit_user(email, first_name=None, last_name=None, full_name=None, password=None, pin=None,user_status=None,phone_number=None):
+def edit_user(email, first_name=None, last_name=None, full_name=None, password=None, pin=None,phone_number=None,user_status=None):
     """
     API endpoint to edit an existing user
     
@@ -142,6 +142,8 @@ def edit_user(email, first_name=None, last_name=None, full_name=None, password=N
             user.full_name = full_name
         if phone_number:
             user.phone_number = phone_number
+        if user_status:
+            user.user_status = user_status
         elif first_name or last_name:
             # Construct full_name if not provided
             user.full_name = f"{user.first_name} {user.last_name}".strip()
@@ -185,10 +187,10 @@ def edit_user(email, first_name=None, last_name=None, full_name=None, password=N
 @frappe.whitelist()
 def get_users():
     """
-    Returns a list of users created by the currently logged-in user
-    with fields similar to ERPNext's default User list.
+    Returns a list of users that belong to the same company as the currently logged-in user.
     """
     try:
+        # Ensure user is logged in
         if not frappe.session.user or frappe.session.user == "Guest":
             return {
                 "status": 403,
@@ -196,13 +198,47 @@ def get_users():
                 "data": []
             }
 
-        users = frappe.get_all(
-            "User",
-            filters={"owner": frappe.session.user},
-            fields=["name", "email", "full_name", "first_name", "last_name", "phone_number", "enabled", "user_type"]
+        # Get current user's company from User Permission
+        current_user_company = frappe.db.get_value(
+            "User Permission",
+            {"user": frappe.session.user, "allow": "Company"},
+            "for_value"
         )
 
-        # Fetch roles for each user
+        if not current_user_company:
+            return {
+                "status": 404,
+                "message": _("No company permission found for current user"),
+                "data": []
+            }
+
+        # Get all users who have the same company in User Permissions
+        users_with_same_company = frappe.get_all(
+            "User Permission",
+            filters={"allow": "Company", "for_value": current_user_company},
+            fields=["user"]
+        )
+
+        user_names = [u.user for u in users_with_same_company if u.user]
+
+        if not user_names:
+            return {
+                "status": 404,
+                "message": _("No users found for this company"),
+                "data": []
+            }
+
+        # Get user details
+        users = frappe.get_all(
+            "User",
+            filters={"name": ["in", user_names]},
+            fields=[
+                "name", "email", "full_name", "first_name", "last_name",
+                "phone_number", "enabled", "user_type"
+            ]
+        )
+
+        # Attach roles for each user
         for user in users:
             user_doc = frappe.get_doc("User", user["name"])
             user["roles"] = [role.role for role in user_doc.roles]
@@ -210,6 +246,7 @@ def get_users():
         return {
             "status": 200,
             "message": _("Users fetched successfully"),
+            "company": current_user_company,
             "data": users
         }
 
