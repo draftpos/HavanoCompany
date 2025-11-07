@@ -234,7 +234,7 @@ def get_users():
             filters={"name": ["in", user_names]},
             fields=[
                 "name", "email", "full_name", "first_name", "last_name",
-                "phone_number", "enabled", "user_type"
+                "phone_number", "enabled", "user_type","pin"
             ]
         )
 
