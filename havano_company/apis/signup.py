@@ -108,7 +108,7 @@ def signup(email, password, first_name, last_name=None, full_name=None,pin=None,
 
 
 @frappe.whitelist(allow_guest=True)
-def edit_user(email, first_name=None, last_name=None, full_name=None, password=None, pin=None,phone_number=None,user_status=None):
+def edit_user(email, first_name=None, last_name=None, full_name=None, password=None, pin=None,phone_number=None,user_status=None,role_select=None):
     """
     API endpoint to edit an existing user
     
@@ -144,6 +144,8 @@ def edit_user(email, first_name=None, last_name=None, full_name=None, password=N
             user.phone_number = phone_number
         if user_status:
             user.user_status = user_status
+        if role_select:
+            user.role_select = role_select
         elif first_name or last_name:
             # Construct full_name if not provided
             user.full_name = f"{user.first_name} {user.last_name}".strip()
@@ -234,11 +236,11 @@ def get_users():
             filters={"name": ["in", user_names]},
             fields=[
                 "name", "email", "full_name", "first_name", "last_name",
-                "phone_number", "enabled", "user_type","pin"
-            ]
+                "phone_number", "enabled", "user_type","pin","role_select"
+            ]==================================================================lss
         )
 
-        # Attach roles for each user
+        # Attach roles for each user====================================================
         for user in users:
             user_doc = frappe.get_doc("User", user["name"])
             user["roles"] = [role.role for role in user_doc.roles]
