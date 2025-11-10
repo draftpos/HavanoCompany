@@ -237,7 +237,7 @@ def get_users():
             fields=[
                 "name", "email", "full_name", "first_name", "last_name",
                 "phone_number", "enabled", "user_type","pin","role_select"
-            ]==================================================================lss
+            ]
         )
 
         # Attach roles for each user====================================================
