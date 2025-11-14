@@ -96,19 +96,21 @@ def register_company(organization_name, full_name=None, email=None, phone=None, 
         )
 
         if warehouse:
+            warehouse_name = warehouse[0]["name"]  # get the string from the list
             user_permission = frappe.get_doc({
-            "doctype": "User Permission",
-            "user": user_email,
-            "allow": "Warehouse",
-            "for_value": warehouse,
-            "apply_to_all_doctypes": 1,
-            "is_default": 1 
+                "doctype": "User Permission",
+                "user": user_email,
+                "allow": "Warehouse",
+                "for_value": warehouse_name,  # pass the string
+                "apply_to_all_doctypes": 1,
+                "is_default": 1 
             })
             user_permission.insert(ignore_permissions=True)
             frappe.db.commit()
         else:
             print("No warehouse found starting with 'Stores'")
-        
+
+                
         # ----------------------------------------------------------------------
         all_warehouse = frappe.get_all(
                 "Warehouse",
