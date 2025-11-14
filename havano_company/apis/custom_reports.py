@@ -62,10 +62,6 @@ def get_sales_invoice_report():
 import frappe
 from frappe.utils import flt, today, add_days
 
-
-import frappe
-from frappe.utils import flt, today, add_days
-
 @frappe.whitelist(allow_guest=True)
 def calculate_and_store_profit_and_loss():
     # Default dates: yesterday to today
