@@ -2,6 +2,7 @@
  "actions": [],
  "allow_rename": 1,
  "autoname": "HC-.#####",
+ "company": "Script Company",
  "creation": "2025-09-18 20:19:45.675663",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -24,6 +25,7 @@
  ],
  "fields": [
   {
+   "company": "Script Company",
    "fieldname": "full_name",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -31,6 +33,7 @@
    "reqd": 1
   },
   {
+   "company": "Script Company",
    "fieldname": "email",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -39,22 +42,26 @@
    "reqd": 1
   },
   {
+   "company": "Script Company",
    "fieldname": "phone",
    "fieldtype": "Data",
    "label": "Phone"
   },
   {
+   "company": "Script Company",
    "fieldname": "industry",
    "fieldtype": "Select",
    "label": "Industry",
    "options": "Retail grocery\nHardshop\nButchery\nRestsurant\nBar\nOther Retail\nOther"
   },
   {
+   "company": "Script Company",
    "fieldname": "column_break_dwnz",
    "fieldtype": "Column Break"
   },
   {
    "allow_on_submit": 1,
+   "company": "Script Company",
    "fieldname": "organization_name",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -62,17 +69,20 @@
    "reqd": 1
   },
   {
+   "company": "Script Company",
    "fieldname": "country",
    "fieldtype": "Link",
    "label": "Country",
    "options": "Country"
   },
   {
+   "company": "Script Company",
    "fieldname": "city",
    "fieldtype": "Data",
    "label": "City"
   },
   {
+   "company": "Script Company",
    "default": "Created",
    "fieldname": "status",
    "fieldtype": "Select",
@@ -83,20 +93,22 @@
   },
   {
    "allow_on_submit": 1,
+   "company": "Script Company",
    "fieldname": "company",
    "fieldtype": "Link",
    "label": "Company",
-   "options": "Company",
-   "read_only": 1
+   "options": "Company"
   },
   {
    "allow_on_submit": 1,
+   "company": "Script Company",
    "fieldname": "user_created",
    "fieldtype": "Link",
    "label": "User Created",
    "options": "User"
   },
   {
+   "company": "Script Company",
    "fieldname": "amended_from",
    "fieldtype": "Link",
    "label": "Amended From",
@@ -114,8 +126,7 @@
   {
    "fieldname": "days_left",
    "fieldtype": "Int",
-   "label": "Days Left",
-   "read_only": 1
+   "label": "Days Left"
   },
   {
    "fieldname": "company_status",
@@ -127,8 +138,8 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-11-04 11:54:26.461102",
- "modified_by": "testcom9@gmail.com",
+ "modified": "2025-11-04 12:01:49.056649",
+ "modified_by": "Administrator",
  "module": "Havano Company",
  "name": "Company Registration",
  "naming_rule": "Expression (old style)",
@@ -142,14 +153,8 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "System Manager",
+   "role": "Administrator",
    "share": 1,
-   "write": 1
-  },
-  {
-   "create": 1,
-   "read": 1,
-   "role": "Guest",
    "write": 1
   }
  ],
@@ -159,10 +164,12 @@
  "states": [
   {
    "color": "Green",
+   "company": "Script Company",
    "title": "Created"
   },
   {
    "color": "Red",
+   "company": "Script Company",
    "title": "Disabled"
   }
  ]

@@ -310,6 +310,12 @@ def setup_company_role_permissions():
 				frappe.logger().warning(f"DocType {doctype} not found, skipping...")
 				continue
 			
+			# Skip User doctype to avoid breaking standard permissions
+			# User doctype has permlevel 1 fields (roles) that require special handling
+			if doctype == "User":
+				frappe.logger().info(f"Skipping User doctype - using standard permissions")
+				continue
+			
 			# Check if permission already exists
 			existing_perm = frappe.db.exists("Custom DocPerm", {
 				"parent": doctype,
